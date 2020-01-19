@@ -5,10 +5,34 @@ import XPC
 
 // MARK: - Object
 
+public func ==(lhs: xpc_object_t, rhs: xpc_object_t) -> Bool {
+    return xpc_equal(lhs, rhs)
+}
+
+public func ~=(pattern: xpc_object_t, value: xpc_object_t) -> Bool {
+    return pattern == value
+}
+
+public func ~=(pattern: xpc_type_t, value: xpc_object_t) -> Bool {
+    return value.rawXPCType == pattern
+}
+
 public extension xpc_object_t {
     
+    var rawXPCType: xpc_type_t {
+        return xpc_get_type(self)
+    }
+    
     var xpcType: XPCType {
-        return XPCType(rawValue: xpc_get_type(self))!
+        return XPCType(rawValue: rawXPCType)!
+    }
+    
+    func isEqual(to obj: xpc_object_t) -> Bool {
+        return xpc_equal(self, obj)
+    }
+    
+    var hash: Int {
+        return xpc_hash(self)
     }
     
     var isNull: Bool {
