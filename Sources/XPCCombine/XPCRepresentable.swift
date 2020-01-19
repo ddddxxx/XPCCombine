@@ -9,7 +9,7 @@ public protocol XPCRepresentable {
     var xpcObject: xpc_object_t { get }
     
     // with type check
-    func fromXPC(_ xpcObject: xpc_object_t) -> Self?
+    static func fromXPC(_ xpcObject: xpc_object_t) -> Self?
 }
 
 extension Bool: XPCRepresentable {
@@ -18,7 +18,7 @@ extension Bool: XPCRepresentable {
         return xpc_bool_create(self)
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .bool else {
             return nil
         }
@@ -32,7 +32,7 @@ extension Int64: XPCRepresentable {
         return xpc_int64_create(self)
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .int64 else {
             return nil
         }
@@ -46,7 +46,7 @@ extension UInt64: XPCRepresentable {
         return xpc_uint64_create(self)
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .uint64 else {
             return nil
         }
@@ -60,7 +60,7 @@ extension Double: XPCRepresentable {
         return xpc_double_create(self)
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .double else {
             return nil
         }
@@ -74,7 +74,7 @@ extension String: XPCRepresentable {
         return xpc_string_create(self)
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .string else {
             return nil
         }
@@ -88,7 +88,7 @@ extension Date: XPCRepresentable {
         return xpc_date_create(Int64(timeIntervalSince1970))
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .date else {
             return nil
         }
@@ -104,7 +104,7 @@ extension UUID: XPCRepresentable {
         return xpc_uuid_create(&arr)
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .uuid else {
             return nil
         }
@@ -120,7 +120,7 @@ extension Data: XPCRepresentable {
         }
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .data else {
             return nil
         }
@@ -134,7 +134,7 @@ extension FileHandle: XPCRepresentable {
         return xpc_fd_create(fileDescriptor) ?? xpc_null_create()
     }
     
-    public func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
         guard xpcObject.xpcType == .fileHandle else {
             return nil
         }
