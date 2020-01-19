@@ -8,6 +8,7 @@ protocol PrimitiveXPCCodable {
     
     var encodedXPC: xpc_object_t { get }
     
+    // without type check
     init?(docedeXPC xpcObject: xpc_object_t)
 }
 
