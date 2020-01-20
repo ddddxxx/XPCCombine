@@ -3,7 +3,7 @@
 import Foundation
 import XPC
 
-enum XPCError: Error {
+public enum XPCError: Error {
     case connectionInterrupted
     case connectionInvalid
     case terminationImminent
@@ -11,7 +11,7 @@ enum XPCError: Error {
 
 extension XPCError: XPCRepresentable {
     
-    var xpcObject: xpc_object_t {
+    public var xpcObject: xpc_object_t {
         switch self {
         case .connectionInterrupted: return XPC_ERROR_CONNECTION_INTERRUPTED
         case .connectionInvalid: return XPC_ERROR_CONNECTION_INVALID
@@ -19,7 +19,7 @@ extension XPCError: XPCRepresentable {
         }
     }
     
-    static func fromXPC(_ xpcObject: xpc_object_t) -> XPCError? {
+    public static func fromXPC(_ xpcObject: xpc_object_t) -> XPCError? {
         switch xpcObject {
         case XPC_ERROR_CONNECTION_INTERRUPTED: return .connectionInterrupted
         case XPC_ERROR_CONNECTION_INVALID: return .connectionInvalid
