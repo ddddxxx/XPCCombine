@@ -184,16 +184,7 @@ private struct _XPCKeyedDecodingContainer<Key: CodingKey>: KeyedPrimitiveDecodin
         self.decoder.codingPath.append(key)
         defer { self.decoder.codingPath.removeLast() }
         
-        guard entry.xpcType != .null else {
-            throw DecodingError.xpcNullValue(at: self.decoder.codingPath, expectation: type)
-        }
-        guard entry.xpcType == T.primitiveXPCType else {
-            throw DecodingError.xpcTypeMismatch(at: self.codingPath, expectation: T.primitiveXPCType, reality: entry.xpcType)
-        }
-        guard let value = T(docedeXPC: entry) else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Parsed XPC object <\(entry)> does not fit in \(T.primitiveXPCType)."))
-        }
-        return value
+        return try T._decode(from: entry, errorPath: self.decoder.codingPath)
     }
     
     func decode<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T {
@@ -213,27 +204,22 @@ private struct _XPCKeyedDecodingContainer<Key: CodingKey>: KeyedPrimitiveDecodin
     }
     
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> {
+        let entry = try decodeXPC(key: key)
+        
         self.decoder.codingPath.append(key)
         defer { self.decoder.codingPath.removeLast() }
         
-        guard let value = container[key.stringValue] else {
-            let ctx = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot get \(KeyedDecodingContainer<NestedKey>.self) -- no value found for key \(key)")
-            throw DecodingError.keyNotFound(key, ctx)
-        }
-        
-        let container = try _XPCKeyedDecodingContainer<NestedKey>(referencing: self.decoder, checkAndWrapping: value, errorPath: self.codingPath)
+        let container = try _XPCKeyedDecodingContainer<NestedKey>(referencing: self.decoder, checkAndWrapping: entry, errorPath: self.codingPath)
         return KeyedDecodingContainer(container)
     }
     
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
+        let entry = try decodeXPC(key: key)
+        
         self.decoder.codingPath.append(key)
         defer { self.decoder.codingPath.removeLast() }
         
-        guard let value = container[key.stringValue] else {
-            let ctx = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot get UnkeyedDecodingContainer -- no value found for key \(key)")
-            throw DecodingError.keyNotFound(key, ctx)
-        }
-        return try _XPCUnkeyedDecodingContainer(referencing: self.decoder, checkAndWrapping: value, errorPath: self.codingPath)
+        return try _XPCUnkeyedDecodingContainer(referencing: self.decoder, checkAndWrapping: entry, errorPath: self.codingPath)
     }
     
     private func _superDecoder(forKey key: CodingKey) throws -> Decoder {
@@ -306,15 +292,10 @@ private struct _XPCUnkeyedDecodingContainer: UnkeyedPrimitiveDecodingContainer {
         self.decoder.codingPath.append(XPCCodingKey(index: self.currentIndex))
         defer { self.decoder.codingPath.removeLast() }
         
-        let xpcObj = container[currentIndex]
-        guard xpcObj.xpcType != .null else {
-            throw DecodingError.xpcNullValue(at: self.decoder.codingPath, expectation: type)
-        }
-        guard let value = T(docedeXPC: xpcObj) else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Parsed XPC object <\(xpcObj)> does not fit in \(T.primitiveXPCType)."))
-        }
+        let decoded = try T._decode(from: container[currentIndex], errorPath: self.decoder.codingPath)
         
-        return value
+        self.currentIndex += 1
+        return decoded
     }
     
     mutating func decode<T: Decodable>(_ type: T.Type) throws -> T {
@@ -380,14 +361,7 @@ extension _XPCDecoder: SingleValuePrimitiveDecodingContainer {
     }
     
     func decodePrimitive<T: PrimitiveCodable>(_ type: T.Type) throws -> T {
-        guard !self.decodeNil() else {
-            throw DecodingError.xpcNullValue(at: self.codingPath, expectation: type)
-        }
-        let xpcObj = self.storage.topContainer
-        guard let value = T(docedeXPC: xpcObj) else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Parsed XPC object <\(xpcObj)> does not fit in \(T.primitiveXPCType)."))
-        }
-        return value
+        return try T._decode(from: self.storage.topContainer, errorPath: self.codingPath)
     }
     
     func decode<T: Decodable>(_ type: T.Type) throws -> T {
@@ -399,6 +373,24 @@ extension _XPCDecoder: SingleValuePrimitiveDecodingContainer {
         self.storage.push(container: value)
         defer { self.storage.popContainer() }
         return try type.init(from: self)
+    }
+}
+
+private extension PrimitiveCodable {
+    
+    static func _decode(from xpcObject: xpc_object_t, errorPath: [CodingKey]) throws -> Self {
+        let expect = self.primitiveXPCType
+        let type = xpcObject.xpcType
+        guard type != .null else {
+            throw DecodingError.xpcNullValue(at: errorPath, expectation: Self.self)
+        }
+        guard type == expect else {
+            throw DecodingError.xpcTypeMismatch(at: errorPath, expectation: expect, reality: type)
+        }
+        guard let value = self.init(docedeXPC: xpcObject) else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: errorPath, debugDescription: "Parsed XPC object <\(xpcObject)> does not fit in \(expect)."))
+        }
+        return value
     }
 }
 
