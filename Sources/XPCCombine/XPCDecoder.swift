@@ -2,9 +2,10 @@
 
 import Foundation
 import XPC
+import CXShim
 
 /// `XPCDecoder` facilitates the decoding of XPC object into semantic `Decodable` types.
-open class XPCDecoder {
+open class XPCDecoder: TopLevelDecoder {
     
     /// The strategy to use for unwrap XPC message.
     public enum XPCMessageUnwrappingStrategy {

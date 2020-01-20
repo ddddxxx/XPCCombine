@@ -2,9 +2,10 @@
 
 import Foundation
 import XPC
+import CXShim
 
 /// `XPCEncoder` facilitates the encoding of `Encodable` values into XPC object.
-open class XPCEncoder {
+open class XPCEncoder: TopLevelEncoder {
     
     /// The strategy to use for non-XPC-message-conforming object values (XPC message must be a dictionary object).
     public enum XPCMessageWrapingStrategy {
