@@ -5,7 +5,7 @@ import XPC
 
 public enum XPCType {
     
-    case null, array, dictionary, bool, int64, uint64, double, string, date, uuid, data, fileHandle, shmem, connection, endpoint, activity
+    case null, array, dictionary, bool, int64, uint64, double, string, date, uuid, data, fileHandle, shmem, connection, endpoint, activity, error
 }
 
 extension XPCType: RawRepresentable {
@@ -28,6 +28,7 @@ extension XPCType: RawRepresentable {
         case .connection: return XPC_TYPE_CONNECTION
         case .endpoint: return XPC_TYPE_ENDPOINT
         case .activity: return XPC_TYPE_ACTIVITY
+        case .error: return XPC_TYPE_ERROR
         }
     }
     
@@ -49,6 +50,7 @@ extension XPCType: RawRepresentable {
         case XPC_TYPE_CONNECTION: self = .connection
         case XPC_TYPE_ENDPOINT: self = .endpoint
         case XPC_TYPE_ACTIVITY: self = .activity
+        case XPC_TYPE_ERROR: self = .error
         default: return nil
         }
     }

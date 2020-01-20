@@ -15,7 +15,7 @@ public protocol XPCRepresentable {
 extension Bool: XPCRepresentable {
     
     public var xpcObject: xpc_object_t {
-        return xpc_bool_create(self)
+        return self ? XPC_BOOL_TRUE : XPC_BOOL_FALSE
     }
     
     public static func fromXPC(_ xpcObject: xpc_object_t) -> Self? {
