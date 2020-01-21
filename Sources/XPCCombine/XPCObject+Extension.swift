@@ -5,19 +5,19 @@ import XPC
 
 // MARK: - Object
 
-public func ==(lhs: xpc_object_t, rhs: xpc_object_t) -> Bool {
+func ==(lhs: xpc_object_t, rhs: xpc_object_t) -> Bool {
     return xpc_equal(lhs, rhs)
 }
 
-public func ~=(pattern: xpc_object_t, value: xpc_object_t) -> Bool {
+func ~=(pattern: xpc_object_t, value: xpc_object_t) -> Bool {
     return pattern == value
 }
 
-public func ~=(pattern: xpc_type_t, value: xpc_object_t) -> Bool {
+func ~=(pattern: xpc_type_t, value: xpc_object_t) -> Bool {
     return value.rawXPCType == pattern
 }
 
-public extension xpc_object_t {
+extension xpc_object_t {
     
     var rawXPCType: xpc_type_t {
         return xpc_get_type(self)
@@ -180,6 +180,15 @@ extension xpc_connection_t {
     
     func connectionSend(_ message: xpc_object_t) {
         xpc_connection_send_message(self, message)
+    }
+    
+    var connectionContext: UnsafeMutableRawPointer? {
+        get {
+            xpc_connection_get_context(self)
+        }
+        set {
+            xpc_connection_set_context(self, newValue)
+        }
     }
 }
 
