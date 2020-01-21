@@ -370,6 +370,9 @@ extension _XPCDecoder: SingleValuePrimitiveDecodingContainer {
     
     func unbox<T: Decodable>(_ value: xpc_object_t, as type: T.Type) throws -> T? {
         guard !(value is NSNull) else { return nil }
+        if let xpcRepresentable = type as? XPCRepresentable.Type {
+            return xpcRepresentable.fromXPC(value) as! T?
+        }
         self.storage.push(container: value)
         defer { self.storage.popContainer() }
         return try type.init(from: self)
